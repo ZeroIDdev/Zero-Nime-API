@@ -2,20 +2,24 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import puppeteer from "puppeteer";
 import chromium from "@sparticuz/chromium";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+
 const animeDetails = async (slug) => {
   try {
     // Launching the browser
-    // const browser = await puppeteer.launch({
-    // headless: "new",
-    // executablePath:'/usr/bin/chromium-browser',
-    // args: ['--no-sandbox']});
-    chromium.setGraphicsMode = false
+    const { stdout: chromiumPath } = await promisify(exec)("which chromium")
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    })
+    headless: "new",
+    executablePath: chromiumPath.trim(),
+    args: ['--no-sandbox', "--disable-setuid-sandbox"]});
+    // chromium.setGraphicsMode = false
+    // const browser = await puppeteer.launch({
+    //   args: chromium.args,
+    //   defaultViewport: chromium.defaultViewport,
+    //   executablePath: await chromium.executablePath(),
+    //   headless: chromium.headless,
+    // })
     // Creating a new page
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(2*60*1000)
