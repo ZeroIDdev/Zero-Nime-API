@@ -4,7 +4,7 @@ import * as controllers from "../controllers/index.js";
 const router = express.Router();
 
 router.get("/", controllers.wajikAnimeApi);
-router.get("/new", controllers.getHome);
+router.get("/newupdate", controllers.getHome);
 router.get("/ongoing", controllers.getOnGoing);
 router.get("/completed", controllers.getCompleted);
 router.get("/anime", controllers.getAnime);

@@ -1,83 +1,52 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { BASEURL } from "../helpers/index.js";
+import puppeteer from "puppeteer";
 
 const animeDetails = async (slug) => {
-  const url = `${BASEURL}/anime/${slug}`,
-    response = await axios.get(url),
-    $ = cheerio.load(response.data),
-    slugPlayer = $(".film-buttons a.btn").attr("href"),
-    slugPlayerSplit = slugPlayer
-      .slice(28, slugPlayer.length)
-      .replace(/\//g, "")
-      .split("-"),
-    slugPlayerFinal = slugPlayerSplit
-      .splice(0, slugPlayerSplit.length - 2)
-      .join("-"),
-    title = $("h2.film-name.dynamic-name").text().trim(),
-    poster = $(".film-poster img").attr("data-src"),
-    description = $(".film-description .text").text().replace(/\n/g, " "),
-    episode = $(".film-stats .item:last").text().match(/\d+/g),
-    info = $("#ani_detail .item.item-title:not(.w-hide) .name")
-      .append("|")
-      .text()
-      .split("|"),
-    status = $(".anis-content .anisc-info .item.item-title:last:last")
-      .text()
-      .replace(/\ |\n/g, "")
-      .split(":"),
-    genres = $("#ani_detail .item.item-list a").append(",").text().split(","),
-    data = {
-      statusCode: 200,
-      url: url,
-      slugPlayer: slugPlayerFinal,
-      title: title,
-      poster: poster,
-      description: description,
-      currentTotalEpisodes: ~~episode[0],
-      totalEpisodes: ~~episode[1] || "Unknown",
-      genres: genres.splice(0, genres.length - 1),
-      detailsList: [
-        {
-          subTitle: "Alternative Title",
-          title: info[0].trim(),
-        },
-        {
-          subTitle: "Current Total Episodes",
-          title: ~~episode[0],
-        },
-        {
-          subTitle: "Total Episodes",
-          title: ~~episode[1] === 0 ? "Unknown" : ~~episode[1],
-        },
-        {
-          subTitle: "Mal Score",
-          title: info[1].trim(),
-        },
-        {
-          subTitle: "Rating",
-          title: info[2].trim(),
-        },
-        {
-          subTitle: "Premiered",
-          title: info[3],
-        },
-        {
-          subTitle: "Aired",
-          title: info[4],
-        },
-        {
-          subTitle: "Type",
-          title: info[5],
-        },
-        {
-          subTitle: "Status",
-          title: status[status.length - 1],
-        },
-      ],
+  try {
+    // Launching the browser
+    const browser = await puppeteer.launch({ headless: "new"});
+    
+    // Creating a new page
+    const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(2*60*1000)
+    // Navigating to the specified URL
+    await page.goto(`https://nimegami.id/${slug}/`);
+
+    await page.waitForSelector('.icon-play');
+
+    // Clicking on the '.icon-play' element
+    await page.click('.icon-play');
+
+    // Waiting for a short period (you might need to adjust this)
+    await page.waitForTimeout(1000);
+
+    // Getting the content after the click
+    const htmlContent = await page.evaluate(()=>{
+      return document.documentElement.innerHTML
+    });
+
+    // Closing the browser
+    await browser.close();
+
+    // Using cheerio to parse the HTML content
+    const $ = cheerio.load(htmlContent);
+
+    // Extracting the title from the parsed HTML
+    const framElement = $('div.video-streaming>iframe').attr("src")
+    // const streamingUrl = framElement.attr("src")
+    const info = $('div.info2>table')
+    // const judul = $(info).find('tbody:nth-first-child>td:nth-last-child').text().trim()
+    const data = {
+      framElement,
+      // judul
     };
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+    return null;
+  }
 };
 
 export default animeDetails;
