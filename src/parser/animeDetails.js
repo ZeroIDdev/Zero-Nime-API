@@ -13,7 +13,7 @@ const animeDetails = async (slug) => {
     const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath("/opt/chromium"),
+      executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     })
     // Creating a new page
