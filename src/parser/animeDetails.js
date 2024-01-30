@@ -5,7 +5,10 @@ import puppeteer from "puppeteer";
 const animeDetails = async (slug) => {
   try {
     // Launching the browser
-    const browser = await puppeteer.launch({ headless: "new"});
+    const browser = await puppeteer.launch({
+    headless: "new",
+    executablePath:'/usr/bin/chromium-browser',
+    args: ['--no-sandbox']});
     
     // Creating a new page
     const page = await browser.newPage();
